@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "nom": "Jardin des Plantes",
+    "arrondissement": "5e",
+    "lat": 48.8447,
+    "lng": 2.3598,
+    "photo": "",
+    "horaires": "Tous les jours 7h30–19h30 (fermeture à la nuit en été)",
+    "notes": "Tables situées près de l'entrée rue Cuvier",
+    "acces_libre": true
+  },
+  {
+    "id": 2,
+    "nom": "Square René Le Gall",
+    "arrondissement": "13e",
+    "lat": 48.8303,
+    "lng": 2.3535,
+    "photo": "",
+    "horaires": "Lun–Ven 8h–18h, Week-end 9h–18h",
+    "notes": "Tables sous les marronniers",
+    "acces_libre": true
+  },
+  {
+    "id": 3,
+    "nom": "Parc de Choisy",
+    "arrondissement": "13e",
+    "lat": 48.8197,
+    "lng": 2.3624,
+    "photo": "",
+    "horaires": "Tous les jours 8h–21h (été), 8h–18h (hiver)",
+    "notes": "2 tables côté avenue de Choisy",
+    "acces_libre": true
+  },
+  {
+    "id": 4,
+    "nom": "Parc Montsouris",
+    "arrondissement": "14e",
+    "lat": 48.8215,
+    "lng": 2.3377,
+    "photo": "",
+    "horaires": "Tous les jours 8h–21h30 (été)",
+    "notes": "Tables près du lac",
+    "acces_libre": true
+  },
+  {
+    "id": 5,
+    "nom": "Place de la Contrescarpe",
+    "arrondissement": "5e",
+    "lat": 48.8462,
+    "lng": 2.3514,
+    "photo": "",
+    "horaires": "Accès libre 24h/24",
+    "notes": "Table en plein air, espace public",
+    "acces_libre": true
+  }
+]
