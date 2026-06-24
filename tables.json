@@ -13,4 +13,36 @@
     "periodes": []
   }
 
+  {
+    "id": 1782339729596,
+    "nom": "Jardin des Grands Moulins",
+    "arrondissement": "13e",
+    "lat": 48.828982,
+    "lng": 2.37916,
+    "photo": "",
+    "nb_tables": 2,
+    "notes": "Une table couverte et une table découverte",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "31/08",
+        "ouverture": "08:00",
+        "fermeture": "20:30"
+      },
+      {
+        "du": "01/09",
+        "au": "30/09",
+        "ouverture": "08:00",
+        "fermeture": "19:30"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "08:00",
+        "fermeture": "18:00"
+      }
+    ]
+  }
+
 ]
