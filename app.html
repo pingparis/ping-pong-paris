@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PingCollect">
+  <meta name="theme-color" content="#1D6A3A">
+  <title>PingCollect — Ajouter une table</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --vert: #1D6A3A; --vert-clair: #2E8B57; --balle: #F5C400;
+      --blanc: #F4F6F4; --encre: #1A1A1A; --gris: #6B7280;
+      --surface: #FFFFFF; --danger: #DC2626; --border: #E5E7EB;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--blanc); color: var(--encre); min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 20px); }
+
+    header { background: var(--vert); color: white; padding: 16px 20px 14px; padding-top: calc(16px + env(safe-area-inset-top, 0px)); display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; }
+    header .badge { background: var(--balle); color: var(--encre); border-radius: 20px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; margin-left: auto; }
+
+    .tabs { display: flex; background: white; border-bottom: 1px solid var(--border); }
+    .tab { flex: 1; padding: 12px; text-align: center; font-size: 0.82rem; font-weight: 500; color: var(--gris); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab.active { color: var(--vert); border-bottom-color: var(--vert); }
+
+    .panel { display: none; padding: 16px; }
+    .panel.active { display: block; }
+
+    .form-section { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .form-section h2 { font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--vert); margin-bottom: 12px; }
+
+    label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--gris); margin-bottom: 4px; margin-top: 10px; }
+    label:first-of-type { margin-top: 0; }
+    input[type="text"], input[type="number"], input[type="time"], input[type="date"], textarea, select {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 0.9rem; font-family: 'DM Sans', sans-serif; background: white; color: var(--encre);
+      appearance: none; -webkit-appearance: none; transition: border-color 0.15s;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--vert-clair); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .gps-row { display: flex; gap: 8px; align-items: flex-start; }
+    .gps-row input { flex: 1; }
+    .btn-gps { background: var(--vert); color: white; border: none; border-radius: 8px; padding: 10px 12px; font-size: 1.2rem; cursor: pointer; flex-shrink: 0; }
+    .gps-status { font-size: 0.75rem; color: var(--gris); margin-top: 4px; }
+    .gps-status.ok { color: #16A34A; }
+    .gps-status.err { color: var(--danger); }
+
+    .photo-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; position: relative; }
+    .photo-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .photo-zone .icon { font-size: 32px; margin-bottom: 6px; }
+    .photo-zone .label { font-size: 0.82rem; color: var(--gris); }
+    #photo-preview { width: 100%; border-radius: 8px; margin-top: 10px; display: none; max-height: 200px; object-fit: cover; }
+
+    /* ── Périodes saisonnières ── */
+    .periode-card { background: var(--blanc); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; position: relative; }
+    .periode-card h3 { font-size: 0.78rem; font-weight: 700; color: var(--vert); margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif; }
+    .periode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .periode-grid label { margin-top: 0; font-size: 0.75rem; }
+    .btn-remove-periode { position: absolute; top: 10px; right: 10px; background: #FEE2E2; border: none; color: var(--danger); border-radius: 6px; width: 26px; height: 26px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-add-periode { width: 100%; background: transparent; border: 1.5px dashed var(--vert-clair); color: var(--vert); border-radius: 8px; padding: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 4px; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .toggle-label { font-size: 0.85rem; font-weight: 500; }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #D1D5DB; border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+    .toggle input:checked + .toggle-slider { background: var(--vert); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .periodes-wrapper { margin-top: 10px; }
+    .periodes-wrapper.hidden { display: none; }
+
+    .btn-submit { width: 100%; background: var(--vert); color: white; border: none; border-radius: 10px; padding: 15px; font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--gris); }
+    .empty-state .big { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.85rem; line-height: 1.6; }
+
+    .entry-card { background: var(--surface); border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; gap: 12px; align-items: flex-start; }
+    .entry-thumb { width: 60px; height: 60px; border-radius: 8px; background: #E5E7EB; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; overflow: hidden; }
+    .entry-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-nom { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; }
+    .entry-arr { font-size: 0.75rem; color: var(--vert-clair); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .entry-detail { font-size: 0.75rem; color: var(--gris); line-height: 1.5; }
+    .entry-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .btn-sm { padding: 4px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; border: none; cursor: pointer; }
+    .btn-delete { background: #FEE2E2; color: var(--danger); }
+    .btn-edit   { background: #DBEAFE; color: #1D40AF; }
+
+    .export-box { background: #111; color: #A3E635; border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.72rem; line-height: 1.6; overflow-x: auto; white-space: pre; max-height: 50vh; overflow-y: auto; margin: 12px 0; }
+    .btn-copy-all { width: 100%; background: var(--balle); color: var(--encre); border: none; border-radius: 10px; padding: 13px; font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .copy-ok { text-align: center; font-size: 0.82rem; color: #16A34A; margin-top: 8px; opacity: 0; transition: opacity 0.3s; }
+    .copy-ok.show { opacity: 1; }
+    .export-guide { background: white; border-radius: 10px; padding: 14px; margin-top: 12px; font-size: 0.82rem; line-height: 1.7; color: var(--gris); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .export-guide strong { color: var(--encre); }
+    .export-guide ol { padding-left: 18px; margin-top: 8px; }
+    .export-guide li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>🏓</span>
+  <h1>PingCollect</h1>
+  <div class="badge" id="badge-count">0 collectée</div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="form">➕ Ajouter</div>
+  <div class="tab" data-tab="list">📋 Mes tables</div>
+  <div class="tab" data-tab="export">📤 Exporter</div>
+</div>
+
+<!-- FORM -->
+<div class="panel active" id="panel-form">
+  <div class="form-section">
+    <h2>📍 Localisation</h2>
+    <label>Nom du lieu</label>
+    <input type="text" id="f-nom" placeholder="ex: Square des Batignolles">
+    <label>Arrondissement</label>
+    <select id="f-arr">
+      <option value="">Sélectionner…</option>
+      <option>1er</option><option>2e</option><option>3e</option><option>4e</option>
+      <option>5e</option><option>6e</option><option>7e</option><option>8e</option>
+      <option>9e</option><option>10e</option><option>11e</option><option>12e</option>
+      <option>13e</option><option>14e</option><option>15e</option><option>16e</option>
+      <option>17e</option><option>18e</option><option>19e</option><option>20e</option>
+    </select>
+    <label>Position GPS</label>
+    <div class="gps-row">
+      <input type="number" id="f-lat" placeholder="Latitude" step="0.0001">
+      <input type="number" id="f-lng" placeholder="Longitude" step="0.0001">
+      <button class="btn-gps" onclick="getGPS()" title="Ma position">📡</button>
+    </div>
+    <div class="gps-status" id="gps-status">Appuie sur 📡 pour ta position automatique</div>
+  </div>
+
+  <div class="form-section">
+    <h2>📸 Photo</h2>
+    <div class="photo-zone" onclick="document.getElementById('f-photo-galerie').click()">
+      <input type="file" id="f-photo-galerie" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+      <div class="icon">🖼️</div>
+      <div class="label">Choisir depuis la galerie</div>
+    </div>
+    <div class="photo-zone" style="margin-top:8px" onclick="document.getElementById('f-photo-camera').click()">
+      <input type="file" id="f-photo-camera" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)">
+      <div class="icon">📷</div>
+      <div class="label">Prendre une photo maintenant</div>
+    </div>
+    <img id="photo-preview" alt="Aperçu">
+  </div>
+
+  <div class="form-section">
+    <h2>🕐 Horaires</h2>
+
+    <div class="toggle-row">
+      <span class="toggle-label">Accès libre 24h/24</span>
+      <label class="toggle">
+        <input type="checkbox" id="f-libre" onchange="toggleLibre(this)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="periodes-wrapper" id="periodes-wrapper">
+      <div style="font-size:0.78rem;color:var(--gris);margin:10px 0 8px">
+        Ajoute une ligne par plage de dates (ex: été, hiver, printemps…)
+      </div>
+      <div id="periodes-container"></div>
+      <button class="btn-add-periode" onclick="addPeriode()">+ Ajouter une période</button>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h2>📝 Notes</h2>
+    <label>Nombre de tables</label>
+    <select id="f-nb">
+      <option value="">Non renseigné</option>
+      <option value="1">1 table</option>
+      <option value="2">2 tables</option>
+      <option value="3">3 tables</option>
+      <option value="4">4 tables</option>
+      <option value="5">5 tables</option>
+      <option value="6">6 tables ou plus</option>
+    </select>
+    <label>Notes</label>
+    <textarea id="f-notes" placeholder="ex: tables couvertes, près de l'entrée nord…"></textarea>
+  </div>
+
+  <button class="btn-submit" onclick="saveEntry()">✓ Enregistrer cette table</button>
+</div>
+
+<!-- LIST -->
+<div class="panel" id="panel-list">
+  <div id="list-container"></div>
+</div>
+
+<!-- EXPORT -->
+<div class="panel" id="panel-export">
+  <div style="padding:4px 0 12px">
+    <strong style="font-family:'Space Grotesk',sans-serif;font-size:1rem">Exporter pour le site</strong>
+    <p style="font-size:0.8rem;color:#6B7280;margin-top:4px">Copie ce JSON et ajoute-le dans ton fichier <code>tables.json</code> sur GitHub.</p>
+  </div>
+  <div class="export-box" id="export-box">En attente de données…</div>
+  <button class="btn-copy-all" onclick="copyExport()">📋 Tout copier</button>
+  <div class="copy-ok" id="copy-ok">✓ Copié !</div>
+  <div class="export-guide">
+    <strong>Comment ajouter ces données sur le site ?</strong>
+    <ol>
+      <li>Copie le JSON ci-dessus</li>
+      <li>Va sur GitHub → fichier <code>tables.json</code></li>
+      <li>Clique sur ✏️ puis ajoute les entrées dans le tableau</li>
+      <li>Clique sur "Commit changes" → le site se met à jour !</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+  const STORE_KEY = 'ping_paris_v2';
+  let entries = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+  let photoData = null;
+  let periodeCount = 0;
+
+  function save() { localStorage.setItem(STORE_KEY, JSON.stringify(entries)); updateBadge(); }
+  function updateBadge() { const n = entries.length; document.getElementById('badge-count').textContent = `${n} collectée${n>1?'s':''}`; }
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'list') renderList();
+      if (tab.dataset.tab === 'export') renderExport();
+    });
+  });
+
+  // Toggle libre
+  function toggleLibre(cb) {
+    document.getElementById('periodes-wrapper').classList.toggle('hidden', cb.checked);
+  }
+
+  // Périodes
+  function addPeriode() {
+    periodeCount++;
+    const id = periodeCount;
+    const container = document.getElementById('periodes-container');
+    const div = document.createElement('div');
+    div.className = 'periode-card';
+    div.id = `periode-${id}`;
+    div.innerHTML = `
+      <h3>Période ${id}</h3>
+      <button class="btn-remove-periode" onclick="removePeriode(${id})">✕</button>
+      <div class="periode-grid">
+        <div>
+          <label>Du (JJ/MM)</label>
+          <input type="text" id="p${id}-du" placeholder="01/01" maxlength="5">
+        </div>
+        <div>
+          <label>Au (JJ/MM)</label>
+          <input type="text" id="p${id}-au" placeholder="31/03" maxlength="5">
+        </div>
+        <div>
+          <label>Ouverture</label>
+          <input type="time" id="p${id}-open" value="08:00">
+        </div>
+        <div>
+          <label>Fermeture</label>
+          <input type="time" id="p${id}-close" value="21:00">
+        </div>
+      </div>`;
+    container.appendChild(div);
+  }
+
+  function removePeriode(id) {
+    document.getElementById(`periode-${id}`)?.remove();
+  }
+
+  function getPeriodes() {
+    const periodes = [];
+    document.querySelectorAll('.periode-card').forEach(card => {
+      const id = card.id.replace('periode-', '');
+      const du    = document.getElementById(`p${id}-du`)?.value.trim();
+      const au    = document.getElementById(`p${id}-au`)?.value.trim();
+      const open  = document.getElementById(`p${id}-open`)?.value;
+      const close = document.getElementById(`p${id}-close`)?.value;
+      if (du && au && open && close) {
+        periodes.push({ du, au, ouverture: open, fermeture: close });
+      }
+    });
+    return periodes;
+  }
+
+  // GPS
+  function getGPS() {
+    const status = document.getElementById('gps-status');
+    status.className = 'gps-status';
+    status.textContent = '⏳ Localisation en cours…';
+    if (!navigator.geolocation) { status.textContent = '❌ Non disponible'; status.className = 'gps-status err'; return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        document.getElementById('f-lat').value = pos.coords.latitude.toFixed(5);
+        document.getElementById('f-lng').value = pos.coords.longitude.toFixed(5);
+        status.textContent = `✓ Position obtenue (±${Math.round(pos.coords.accuracy)}m)`;
+        status.className = 'gps-status ok';
+      },
+      err => { status.textContent = '❌ ' + err.message; status.className = 'gps-status err'; },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  // Photo
+  function previewPhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      photoData = e.target.result;
+      const preview = document.getElementById('photo-preview');
+      preview.src = photoData;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  let editingId = null; // null = création, sinon = modification
+
+  function editEntry(id) {
+    const e = entries.find(x => x.id === id);
+    if (!e) return;
+    editingId = id;
+
+    // Basculer sur l'onglet Ajouter
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="form"]').classList.add('active');
+    document.getElementById('panel-form').classList.add('active');
+
+    // Remplir le formulaire
+    document.getElementById('f-nom').value = e.nom || '';
+    document.getElementById('f-arr').value = e.arrondissement || '';
+    document.getElementById('f-lat').value = e.lat || '';
+    document.getElementById('f-lng').value = e.lng || '';
+    document.getElementById('f-notes').value = e.notes || '';
+    document.getElementById('f-nb').value = e.nb_tables || '';
+    document.getElementById('f-libre').checked = e.acces_libre || false;
+    document.getElementById('periodes-wrapper').classList.toggle('hidden', e.acces_libre);
+
+    // Photo existante
+    if (e.photo) {
+      photoData = e.photo;
+      const preview = document.getElementById('photo-preview');
+      preview.src = e.photo;
+      preview.style.display = 'block';
+    }
+
+    // Périodes
+    document.getElementById('periodes-container').innerHTML = '';
+    periodeCount = 0;
+    (e.periodes || []).forEach(p => {
+      addPeriode();
+      const id2 = periodeCount;
+      document.getElementById(`p${id2}-du`).value    = p.du;
+      document.getElementById(`p${id2}-au`).value    = p.au;
+      document.getElementById(`p${id2}-open`).value  = p.ouverture;
+      document.getElementById(`p${id2}-close`).value = p.fermeture;
+    });
+
+    // Changer le bouton submit
+    document.querySelector('.btn-submit').innerHTML = '✏️ Enregistrer les modifications';
+    document.getElementById('gps-status').textContent = 'Position actuelle — utilise 📡 pour modifier';
+    document.getElementById('gps-status').className = 'gps-status ok';
+
+    window.scrollTo(0, 0);
+  }
+
+  function resetForm() {
+    editingId = null;
+    ['f-nom','f-lat','f-lng','f-notes','f-nb'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('f-arr').value = '';
+    document.getElementById('f-libre').checked = false;
+    document.getElementById('photo-preview').style.display = 'none';
+    const pg = document.getElementById('f-photo-galerie');
+    const pc = document.getElementById('f-photo-camera');
+    if (pg) pg.value = '';
+    if (pc) pc.value = '';
+    document.getElementById('gps-status').textContent = 'Appuie sur 📡 pour ta position automatique';
+    document.getElementById('gps-status').className = 'gps-status';
+    document.getElementById('periodes-container').innerHTML = '';
+    document.getElementById('periodes-wrapper').classList.remove('hidden');
+    document.querySelector('.btn-submit').innerHTML = '✓ Enregistrer cette table';
+    periodeCount = 0;
+    photoData = null;
+  }
+  function saveEntry() {
+    const nom = document.getElementById('f-nom').value.trim();
+    const arr = document.getElementById('f-arr').value;
+    const lat = parseFloat(document.getElementById('f-lat').value);
+    const lng = parseFloat(document.getElementById('f-lng').value);
+    const libre = document.getElementById('f-libre').checked;
+
+    if (!nom) { alert('Le nom du lieu est obligatoire.'); return; }
+    if (!arr)  { alert('Sélectionne un arrondissement.'); return; }
+    if (isNaN(lat) || isNaN(lng)) { alert('La position GPS est manquante. Utilise le bouton 📡.'); return; }
+
+    const nb = parseInt(document.getElementById('f-nb').value);
+    const periodes = libre ? [] : getPeriodes();
+
+    if (editingId !== null) {
+      const idx = entries.findIndex(e => e.id === editingId);
+      if (idx !== -1) {
+        entries[idx] = { ...entries[idx], nom, arrondissement: arr, lat, lng,
+          photo: photoData || entries[idx].photo || '',
+          nb_tables: isNaN(nb) ? null : nb,
+          notes: document.getElementById('f-notes').value.trim(),
+          acces_libre: libre, periodes
+        };
+      }
+      save();
+      resetForm();
+      alert(`✓ "${nom}" modifiée !`);
+    } else {
+      const entry = { id: Date.now(), nom, arrondissement: arr, lat, lng,
+        photo: photoData || '',
+        nb_tables: isNaN(nb) ? null : nb,
+        notes: document.getElementById('f-notes').value.trim(),
+        acces_libre: libre, periodes
+      };
+      entries.push(entry);
+      save();
+      resetForm();
+      alert(`✓ "${nom}" enregistrée !`);
+    }
+  }
+
+  // List
+  function renderList() {
+    const container = document.getElementById('list-container');
+    if (entries.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="big">🏓</div><p>Aucune table collectée.<br>Va dans <strong>Ajouter</strong> pour commencer !</p></div>`;
+      return;
+    }
+    container.innerHTML = entries.map(e => `
+      <div class="entry-card">
+        <div class="entry-thumb">${e.photo ? `<img src="${e.photo}" alt="">` : '🏓'}</div>
+        <div class="entry-info">
+          <div class="entry-arr">${e.arrondissement}</div>
+          <div class="entry-nom">${e.nom}</div>
+          <div class="entry-detail">
+            ${e.acces_libre ? '🟡 Libre 24h/24' : `${e.periodes.length} période(s) saisonnière(s)`}
+            ${e.notes ? '<br>' + e.notes : ''}
+          </div>
+          <div class="entry-actions">
+            <button class="btn-sm btn-edit" onclick="editEntry(${e.id})">✏️ Modifier</button>
+            <button class="btn-sm btn-delete" onclick="deleteEntry(${e.id})">🗑 Supprimer</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function deleteEntry(id) {
+    if (!confirm('Supprimer cette table ?')) return;
+    entries = entries.filter(e => e.id !== id);
+    save(); renderList();
+  }
+
+  // Export
+  function renderExport() {
+    const exportable = entries.map(e => {
+      const obj = { ...e };
+      if (obj.photo && obj.photo.startsWith('data:')) {
+        obj.photo = `images/table_${obj.id}.jpg`;
+      }
+      return obj;
+    });
+    document.getElementById('export-box').textContent = JSON.stringify(exportable, null, 2);
+  }
+
+  function copyExport() {
+    navigator.clipboard.writeText(document.getElementById('export-box').textContent).then(() => {
+      const el = document.getElementById('copy-ok');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    });
+  }
+
+  updateBadge();
+</script>
+</body>
+</html>
