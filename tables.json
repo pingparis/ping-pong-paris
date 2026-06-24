@@ -12,7 +12,9 @@
     "acces_libre": true,
     "periodes": []
   }
+]
 
+[
   {
     "id": 1782339729596,
     "nom": "Jardin des Grands Moulins",
@@ -42,7 +44,6 @@
         "ouverture": "08:00",
         "fermeture": "18:00"
       }
-    
+    ]
   }
-
 ]
