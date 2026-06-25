@@ -76,4 +76,37 @@
       }
     ]
   }
+  ,
+  {
+    "id": 1782421644902,
+    "nom": "Square Robert Montagne",
+    "arrondissement": "5e",
+    "lat": 48.842301,
+    "lng": 2.353808,
+    "photo": "",
+    "nb_tables": 1,
+    "notes": "",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "31/08",
+        "ouverture": "09:30",
+        "fermeture": "20:30"
+      },
+      {
+        "du": "01/09",
+        "au": "30/09",
+        "ouverture": "09:30",
+        "fermeture": "19:30"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "09:30",
+        "fermeture": "18:30"
+      }
+    ]
+  }
+
 ]
