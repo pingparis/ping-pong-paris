@@ -44,4 +44,36 @@
       }
     ]
   }
+  ,
+  {
+    "id": 1782421360045,
+    "nom": "Parc de Choisy",
+    "arrondissement": "13e",
+    "lat": 48.827691,
+    "lng": 2.359593,
+    "photo": "",
+    "nb_tables": 5,
+    "notes": "",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "31/08",
+        "ouverture": "08:00",
+        "fermeture": "21:30"
+      },
+      {
+        "du": "01/09",
+        "au": "30/09",
+        "ouverture": "08:00",
+        "fermeture": "20:30"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "08:00",
+        "fermeture": "19:30"
+      }
+    ]
+  }
 ]
