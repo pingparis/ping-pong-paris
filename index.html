@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ping Paris — Tables de ping-pong en libre accès</title>
+  <meta name="description" content="Trouvez toutes les tables de ping-pong en libre accès à Paris. Carte interactive avec photos et horaires.">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --vert:       #1D6A3A;
+      --vert-clair: #2E8B57;
+      --balle:      #F5C400;
+      --blanc:      #F7F5F0;
+      --encre:      #1A1A1A;
+      --gris:       #6B7280;
+      --surface:    #FFFFFF;
+      --ouvert:     #16A34A;
+      --ferme:      #DC2626;
+      --ombre:      0 2px 16px rgba(0,0,0,0.10);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--blanc); color: var(--encre); min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { background: var(--vert); color: white; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 1000; box-shadow: var(--ombre); }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
+    .logo-icon { width: 32px; height: 32px; background: var(--balle); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.15rem; letter-spacing: -0.5px; }
+    .logo-text span { color: var(--balle); }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-count { font-size: 0.8rem; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 20px; font-family: 'Space Grotesk', sans-serif; }
+
+    /* Légende */
+    .legend { display: flex; align-items: center; gap: 12px; font-size: 0.75rem; color: rgba(255,255,255,0.85); }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; }
+    .legend-dot.ouvert { background: var(--ouvert); }
+    .legend-dot.ferme  { background: var(--ferme); }
+    .legend-dot.libre  { background: var(--balle); }
+
+    .filter-bar { background: var(--surface); border-bottom: 1px solid #E5E7EB; padding: 10px 20px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-btn { background: var(--blanc); border: 1.5px solid #D1D5DB; border-radius: 20px; padding: 5px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.15s; color: var(--encre); }
+    .filter-btn:hover, .filter-btn.active { background: var(--vert); border-color: var(--vert); color: white; }
+
+    #map { flex: 1; min-height: calc(100vh - 60px - 49px); }
+
+    /* Popup */
+    .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: none; padding: 0; overflow: hidden; width: 280px; }
+    .leaflet-popup-content { margin: 0; width: 100% !important; }
+    .leaflet-popup-tip { background: white; }
+
+    .popup-photo { width: 100%; height: 150px; object-fit: cover; display: block; }
+    .popup-photo-placeholder { width: 100%; height: 150px; background: linear-gradient(135deg, #1D6A3A 0%, #2E8B57 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: white; }
+    .popup-photo-placeholder .pp-icon { font-size: 36px; }
+    .popup-photo-placeholder .pp-label { font-size: 0.75rem; opacity: 0.75; }
+
+    .popup-body { padding: 14px 16px 16px; }
+    .popup-arr { font-size: 0.72rem; font-weight: 600; color: var(--vert-clair); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .popup-nom { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: var(--encre); margin-bottom: 10px; line-height: 1.3; }
+    .popup-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; margin-bottom: 10px; }
+    .popup-status.ouvert { background: #DCFCE7; color: #166534; }
+    .popup-status.ferme  { background: #FEE2E2; color: #991B1B; }
+    .popup-status.libre  { background: #FEF9C3; color: #854D0E; }
+    .popup-status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .popup-status.ouvert .popup-status-dot { background: var(--ouvert); }
+    .popup-status.ferme  .popup-status-dot { background: var(--ferme); }
+    .popup-status.libre  .popup-status-dot { background: #CA8A04; }
+
+    .popup-row { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 7px; font-size: 0.82rem; color: var(--gris); line-height: 1.4; }
+    .popup-row .icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+
+    .periodes-list { font-size: 0.75rem; color: var(--gris); margin-top: 4px; }
+    .periodes-list table { width: 100%; border-collapse: collapse; }
+    .periodes-list td { padding: 2px 4px; }
+    .periodes-list tr.current-period td { color: var(--ouvert); font-weight: 600; }
+
+    /* Marker */
+    .ping-marker { width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+    .ping-marker::after { content: '🏓'; transform: rotate(45deg); font-size: 13px; display: block; }
+    .ping-marker.ouvert { background: var(--ouvert); }
+    .ping-marker.ferme  { background: var(--ferme); }
+    .ping-marker.libre  { background: #CA8A04; }
+
+    #loading { position: fixed; inset: 0; background: var(--vert); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; transition: opacity 0.4s; }
+    .loading-ball { width: 48px; height: 48px; background: var(--balle); border-radius: 50%; animation: bounce 0.7s infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+    #loading p { color: white; font-family: 'Space Grotesk', sans-serif; font-size: 1rem; opacity: 0.8; }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+
+    @media (max-width: 600px) { .legend { display: none; } .header-count { display: none; } }
+
+    /* ── Bouton GPS ── */
+    .btn-locate {
+      position: absolute;
+      bottom: 80px;
+      right: 12px;
+      z-index: 900;
+      width: 40px;
+      height: 40px;
+      background: white;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .btn-locate:hover { background: #f0f0f0; }
+    .btn-locate.active { background: #DBEAFE; }
+
+    /* ── Point position utilisateur ── */
+    .user-dot {
+      width: 16px;
+      height: 16px;
+      background: #3B82F6;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(59,130,246,0.25);
+    }
+
+    /* ── Bouton Y aller ── */
+    .btn-aller {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      background: #1D6A3A;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-aller:hover { background: #2E8B57; }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-ball"></div>
+  <p>Chargement des tables…</p>
+</div>
+
+<header>
+  <a class="logo" href="#">
+    <div class="logo-icon">🏓</div>
+    <div class="logo-text">Ping<span>Paris</span></div>
+  </a>
+  <div class="header-right">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot ouvert"></div> Ouvert</div>
+      <div class="legend-item"><div class="legend-dot ferme"></div> Fermé</div>
+      <div class="legend-item"><div class="legend-dot libre"></div> Libre 24h/24</div>
+    </div>
+    <div class="header-count" id="header-count">— tables</div>
+  </div>
+</header>
+
+<div class="filter-bar" id="filter-bar">
+  <button class="filter-btn active" data-filter="all">Toutes</button>
+  <button class="filter-btn" data-filter="open">🟢 Ouvertes maintenant</button>
+</div>
+
+<div id="map"></div>
+<button class="btn-locate" id="btn-locate" title="Ma position">📍</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<style>
+  /* Cluster personnalisé aux couleurs du site */
+  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+    background-color: rgba(29, 106, 58, 0.25) !important;
+  }
+  .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+    background-color: rgba(29, 106, 58, 0.85) !important;
+    color: white !important;
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+  }
+</style>
+<script>
+  const map = L.map('map', { center: [48.8566, 2.3522], zoom: 13 });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+  }).addTo(map);
+
+  // ── Calcule si une table est ouverte maintenant
+  function isOuvert(table) {
+    if (table.acces_libre) return 'libre';
+    if (!table.periodes || table.periodes.length === 0) return 'inconnu';
+
+    const now = new Date();
+    const mois = now.getMonth() + 1; // 1-12
+    const jour  = now.getDate();
+    const hhmm  = now.getHours() * 60 + now.getMinutes();
+
+    for (const p of table.periodes) {
+      const [dj, dm] = p.du.split('/').map(Number);
+      const [aj, am] = p.au.split('/').map(Number);
+
+      const dateJour = mois * 100 + jour;
+      const dateDu   = dm * 100 + dj;
+      const dateAu   = am * 100 + aj;
+
+      const dansPlage = dateDu <= dateAu
+        ? dateJour >= dateDu && dateJour <= dateAu
+        : dateJour >= dateDu || dateJour <= dateAu; // chevauchement année (ex: nov→fév)
+
+      if (dansPlage) {
+        const [oh, om] = p.ouverture.split(':').map(Number);
+        const [fh, fm] = p.fermeture.split(':').map(Number);
+        const open  = oh * 60 + om;
+        const close = fh * 60 + fm;
+        return hhmm >= open && hhmm < close ? 'ouvert' : 'ferme';
+      }
+    }
+    return 'ferme';
+  }
+
+  function statutLabel(s) {
+    if (s === 'libre')   return { cls: 'libre',  txt: 'Accès libre 24h/24' };
+    if (s === 'ouvert')  return { cls: 'ouvert', txt: 'Ouvert maintenant' };
+    if (s === 'ferme')   return { cls: 'ferme',  txt: 'Fermé en ce moment' };
+    return { cls: 'ferme', txt: 'Horaires inconnus' };
+  }
+
+  function periodeCourante(table) {
+    if (table.acces_libre || !table.periodes) return null;
+    const now = new Date();
+    const mois = now.getMonth() + 1;
+    const jour  = now.getDate();
+    const dateJour = mois * 100 + jour;
+    for (const p of table.periodes) {
+      const [dj, dm] = p.du.split('/').map(Number);
+      const [aj, am] = p.au.split('/').map(Number);
+      const dateDu = dm * 100 + dj;
+      const dateAu = am * 100 + aj;
+      const dansPlage = dateDu <= dateAu
+        ? dateJour >= dateDu && dateJour <= dateAu
+        : dateJour >= dateDu || dateJour <= dateAu;
+      if (dansPlage) return p;
+    }
+    return null;
+  }
+
+  function makeIcon(statut) {
+    return L.divIcon({
+      className: '',
+      html: `<div class="ping-marker ${statut}"></div>`,
+      iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -34]
+    });
+  }
+
+  function popupHtml(t, statut) {
+    const { cls, txt } = statutLabel(statut);
+    const pc = periodeCourante(t);
+
+    const photoEl = t.photo
+      ? `<img class="popup-photo" src="${t.photo}" alt="${t.nom}" loading="lazy">`
+      : `<div class="popup-photo-placeholder"><div class="pp-icon">🏓</div><div class="pp-label">Photo à venir</div></div>`;
+
+    let horairesHtml = '';
+    if (t.acces_libre) {
+      horairesHtml = `<div class="popup-row"><span class="icon">🕐</span><span>Accès libre 24h/24</span></div>`;
+    } else if (pc) {
+      horairesHtml = `<div class="popup-row"><span class="icon">🕐</span><span>Aujourd'hui : ${pc.ouverture.replace(':','h')}–${pc.fermeture.replace(':','h')}</span></div>`;
+    }
+
+    let periodesHtml = '';
+    if (t.periodes && t.periodes.length > 0) {
+      const now = new Date();
+      const mois = now.getMonth() + 1;
+      const jour  = now.getDate();
+      const dateJour = mois * 100 + jour;
+
+      const rows = t.periodes.map(p => {
+        const [dj, dm] = p.du.split('/').map(Number);
+        const [aj, am] = p.au.split('/').map(Number);
+        const dateDu = dm * 100 + dj;
+        const dateAu = am * 100 + aj;
+        const dansPlage = dateDu <= dateAu
+          ? dateJour >= dateDu && dateJour <= dateAu
+          : dateJour >= dateDu || dateJour <= dateAu;
+        return `<tr class="${dansPlage ? 'current-period' : ''}">
+          <td>${p.du.replace('/','/').replace(/^0/,'')} → ${p.au.replace('/','/').replace(/^0/,'')}</td>
+          <td>${p.ouverture.replace(':','h')}–${p.fermeture.replace(':','h')}</td>
+        </tr>`;
+      }).join('');
+
+      periodesHtml = `
+        <div class="popup-row" style="flex-direction:column;gap:4px">
+          <span style="font-size:0.75rem;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Horaires saisonniers</span>
+          <div class="periodes-list"><table>${rows}</table></div>
+        </div>`;
+    }
+
+    return `
+      ${photoEl}
+      <div class="popup-body">
+        <div class="popup-arr">${t.arrondissement} arr.</div>
+        <div class="popup-nom">${t.nom}</div>
+        <div class="popup-status ${cls}"><div class="popup-status-dot"></div>${txt}</div>
+        ${horairesHtml}
+        ${periodesHtml}
+        ${t.nb_tables ? `<div class="popup-row"><span class="icon">🏓</span><span>${t.nb_tables} table${t.nb_tables > 1 ? 's' : ''} disponible${t.nb_tables > 1 ? 's' : ''}</span></div>` : ''}
+        ${t.notes ? `<div class="popup-row"><span class="icon">📍</span><span>${t.notes}</span></div>` : ''}
+        <a class="btn-aller" href="https://www.google.com/maps/dir/?api=1&destination=${t.lat},${t.lng}" target="_blank">
+          🗺️ Y aller avec Google Maps
+        </a>
+      </div>`;
+  }
+
+  let allTables = [], markers = [], arrondissements = new Set();
+  let activeFilter = 'all';
+
+  // Cluster group
+  const clusterGroup = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    disableClusteringAtZoom: 16
+  });
+  map.addLayer(clusterGroup);
+
+  fetch('tables.json')
+    .then(r => r.json())
+    .then(tables => {
+      allTables = tables;
+      document.getElementById('header-count').textContent = `${tables.length} table${tables.length > 1 ? 's' : ''}`;
+
+      tables.forEach(t => arrondissements.add(t.arrondissement));
+      const fb = document.getElementById('filter-bar');
+      [...arrondissements].sort().forEach(arr => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.filter = arr;
+        btn.textContent = arr;
+        fb.appendChild(btn);
+      });
+
+      tables.forEach(t => {
+        const statut = isOuvert(t);
+        const marker = L.marker([t.lat, t.lng], { icon: makeIcon(statut) })
+          .bindPopup(popupHtml(t, statut), { maxWidth: 280 });
+        marker._tableData = t;
+        marker._statut = statut;
+        markers.push(marker);
+      });
+
+      clusterGroup.addLayers(markers);
+      setTimeout(() => document.getElementById('loading').classList.add('hidden'), 500);
+    });
+
+  document.getElementById('filter-bar').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+
+    const filtered = markers.filter(m => {
+      const t = m._tableData;
+      return activeFilter === 'all'
+        || (activeFilter === 'open' && (m._statut === 'ouvert' || m._statut === 'libre'))
+        || t.arrondissement === activeFilter;
+    });
+
+    clusterGroup.clearLayers();
+    clusterGroup.addLayers(filtered);
+  });
+
+  // ── Point de position utilisateur
+  let userMarker = null;
+
+  document.getElementById('btn-locate').addEventListener('click', () => {
+    const btn = document.getElementById('btn-locate');
+    if (!navigator.geolocation) { alert('La géolocalisation n\'est pas disponible sur ce navigateur.'); return; }
+    btn.textContent = '⏳';
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+
+        // Supprimer l'ancien marqueur si existant
+        if (userMarker) map.removeLayer(userMarker);
+
+        // Ajouter le point bleu
+        userMarker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            className: '',
+            html: '<div class="user-dot"></div>',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+          }),
+          zIndexOffset: 1000
+        }).addTo(map);
+
+        // Centrer la carte sur la position
+        map.setView([lat, lng], 15);
+        btn.textContent = '📍';
+        btn.classList.add('active');
+      },
+      err => {
+        btn.textContent = '📍';
+        alert('Impossible d\'obtenir ta position. Vérifie que la localisation est autorisée pour ce site.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+</script>
+</body>
+</html>
