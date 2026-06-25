@@ -246,4 +246,61 @@
       }
     ]
   }
+  ,
+  {
+    "id": 1782425911790,
+    "nom": "Square Charles Péguy",
+    "arrondissement": "12e",
+    "lat": 48.838882,
+    "lng": 2.406498,
+    "photo": "",
+    "nb_tables": 2,
+    "notes": "Une table couverte et une table découverte",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "31/08",
+        "ouverture": "08:00",
+        "fermeture": "21:30"
+      },
+      {
+        "du": "01/09",
+        "au": "30/09",
+        "ouverture": "08:00",
+        "fermeture": "20:30"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "08:00",
+        "fermeture": "19:30"
+      }
+    ]
+  },
+  {
+    "id": 1782426162109,
+    "nom": "Parc Floral",
+    "arrondissement": "12e",
+    "lat": 48.83728,
+    "lng": 2.447903,
+    "photo": "",
+    "nb_tables": 6,
+    "notes": "7 tables. Accès payant au Parc Floral.",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "30/09",
+        "ouverture": "09:30",
+        "fermeture": "20:00"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "09:30",
+        "fermeture": "18:30"
+      }
+    ]
+  }
 ]
