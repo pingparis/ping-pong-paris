@@ -171,4 +171,79 @@
       }
     ]
   }
+  ,
+  {
+    "id": 1782424557112,
+    "nom": "Parc René-Le Gall",
+    "arrondissement": "13e",
+    "lat": 48.831548,
+    "lng": 2.348209,
+    "photo": "",
+    "nb_tables": 4,
+    "notes": "",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "31/08",
+        "ouverture": "08:00",
+        "fermeture": "21:30"
+      },
+      {
+        "du": "01/09",
+        "au": "30/09",
+        "ouverture": "08:00",
+        "fermeture": "20:30"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "08:00",
+        "fermeture": "19:30"
+      }
+    ]
+  },
+  {
+    "id": 1782424664201,
+    "nom": "Square Henri Galli",
+    "arrondissement": "4e",
+    "lat": 48.851503,
+    "lng": 2.36169,
+    "photo": "",
+    "nb_tables": 1,
+    "notes": "",
+    "acces_libre": true,
+    "periodes": []
+  },
+  {
+    "id": 1782424907699,
+    "nom": "Square des Batignolled",
+    "arrondissement": "17e",
+    "lat": 48.88776,
+    "lng": 2.351582,
+    "photo": "",
+    "nb_tables": 3,
+    "notes": "",
+    "acces_libre": false,
+    "periodes": [
+      {
+        "du": "01/05",
+        "au": "31/08",
+        "ouverture": "08:00",
+        "fermeture": "21:30"
+      },
+      {
+        "du": "01/09",
+        "au": "30/09",
+        "ouverture": "08:00",
+        "fermeture": "20:30"
+      },
+      {
+        "du": "01/10",
+        "au": "24/10",
+        "ouverture": "08:00",
+        "fermeture": "19:30"
+      }
+    ]
+  }
 ]
